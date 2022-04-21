@@ -5,9 +5,44 @@
 # Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+image: python:3.10.4-alpine
 stages:
 - test
+
 sast:
   stage: test
 include:
 - template: Security/SAST.gitlab-ci.yml
+
+variables:
+  BROWSER: chrome
+
+.job_template:
+  before_script:
+    - pip3 install -r requirements.txt
+script:
+    - pytest --browser=$BROWSER --local='false'
+
+e2e:remote:chrome:
+  extends: .job_template
+  services:
+    - selenium/standalone-chrome
+  only:
+    variables:
+      - $BROWSER == 'chrome'
+
+e2e:remote:firefox:
+  extends: .job_template
+  services:
+    - selenium/standalone-firefox
+  only:
+    variables:
+      - $BROWSER == 'firefox'
+
+e2e:remote:edge:
+  extends: .job_template
+  services:
+    - selenium/standalone-edge
+  only:
+    variables:
+      - $BROWSER == 'edge'
