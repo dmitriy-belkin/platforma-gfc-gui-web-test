@@ -9,6 +9,7 @@ from selenium.webdriver.edge.service import Service
 from selenium.webdriver.common.by import By
 
 window_size = '--window-size=1920,1080'
+url = "https://test-ssr.gfc-russia.ru/"
 
 
 def pytest_addoption(parser):
@@ -25,7 +26,7 @@ def test_browser(request):
     return request.config.getoption('--browser')
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def get_chrome_options():
     """ Декоратор настройки параметров браузера Chrome """
     options_chrome = chrome_options()
@@ -34,10 +35,11 @@ def get_chrome_options():
     options_chrome.add_argument('--start-maximized')
     options_chrome.add_argument(window_size)
     options_chrome.add_argument('--no-sandbox')
+    options_chrome.add_argument('--disable-dev-shm-usage')
     return options_chrome
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def get_firefox_options():
     """ Декоратор настройки параметров браузера FireFox """
     options_firefox = firefox_options()
@@ -48,7 +50,7 @@ def get_firefox_options():
     return options_firefox
 
 
-@pytest.fixture
+@pytest.fixture(scope='session')
 def get_edge_options():
     """ Декоратор настройки параметров браузера Edge """
     options_edge = edge_options()
@@ -59,7 +61,7 @@ def get_edge_options():
     return options_edge
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session', autouse=True)
 def driver(get_chrome_options, get_firefox_options, get_edge_options, test_browser):
     """ Вызов веб-драйвера в зависимости от выбора """
     if test_browser != 'chrome' and test_browser != 'firefox' and test_browser != 'edge' and test_browser != 'opera':
@@ -69,9 +71,8 @@ def driver(get_chrome_options, get_firefox_options, get_edge_options, test_brows
                          'FireFox - firefox\n'
                          'Microsoft Edge - edge\n')
     if test_browser == 'chrome':
-        chrome = Service('./webdrivers/chromedriver.exe')
         options = get_chrome_options
-        driver = webdriver.Chrome(options=options, service=chrome)
+        driver = webdriver.Remote(options=options)
     elif test_browser == 'firefox':
         firefox = Service('./webdrivers/geckodriver.exe')
         options = get_firefox_options
@@ -86,13 +87,13 @@ def driver(get_chrome_options, get_firefox_options, get_edge_options, test_brows
     driver.quit()
 
 
-@pytest.fixture()
+@pytest.fixture(scope='session', autouse=True)
 def session(driver):
     """
     Авторизация под тестовым пользователем
     для последующих тестов
     """
-    driver.get("https://test-ssr.gfc-russia.ru/")
+    driver.get(url)
     driver.find_element(By.XPATH,
                         "/html/body/div[2]/div/header/div[2]/div[3]/div/div/div/div/div/div[3]/div/div[2]").click()
     driver.find_element(By.ID, "SIGN_IN_EMAIL").clear()
@@ -102,6 +103,7 @@ def session(driver):
     driver.find_element(By.XPATH, '//button[normalize-space()="Войти"]').click()
     driver.implicitly_wait(5)
     yield
+    driver.get(url)
 
 
 @pytest.fixture()
@@ -109,5 +111,4 @@ def no_auth(driver):
     """
     Для тестирования, под не авторизованным пользователем.
     """
-    driver.get("https://test-ssr.gfc-russia.ru/")
-    yield
+    return driver.get(url)
