@@ -1,12 +1,18 @@
 import pytest
 from selenium import webdriver
-from selenium.webdriver import Remote
 from selenium.webdriver.chrome.options import Options as chrome_options
+from selenium.webdriver.firefox.options import Options as firefox_options
+from selenium.webdriver.edge.options import Options as edge_options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.edge.service import Service
+from selenium.webdriver.common.by import By
+
+window_size = '--window-size=1920,1080'
 
 
 def pytest_addoption(parser):
-    parser.addoption('--browser', help='В каком браузере тестировать?',
+    parser.addoption('--browser', help='В каком браузере запустить тестирование?',
                      default='chrome')
     parser.addoption('--local', help='Локально или использовать CI?',
                      choices=['true', 'false'],
@@ -15,90 +21,93 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope='session')
 def test_browser(request):
-    """ Возвращает название браузера """
+    """ Возвращает параметр для запуска браузера """
     return request.config.getoption('--browser')
 
 
 @pytest.fixture
 def get_chrome_options():
     """ Декоратор настройки параметров браузера Chrome """
-    options = chrome_options()
-    # chrome - with UI or headless - when we don't need UI
-    options.add_argument('chrome')
-    options.add_argument('--start-maximized')
-    options.add_argument('--window-size=1920,1080')
-    return options
+    options_chrome = chrome_options()
+    # "chrome" - Чтобы запустить с UI или "headless" - если не нужно отображать UI
+    options_chrome.add_argument('chrome')
+    options_chrome.add_argument('--start-maximized')
+    options_chrome.add_argument(window_size)
+    options_chrome.add_argument('--no-sandbox')
+    return options_chrome
 
 
 @pytest.fixture
-def driver(get_chrome_options):
-    """ Декоратор веб-драйвера """
-    s = Service('./webdrivers/chromedriver.exe')
-    options = get_chrome_options
-    driver = webdriver.Chrome(options=options, service=s)
-    return driver
+def get_firefox_options():
+    """ Декоратор настройки параметров браузера FireFox """
+    options_firefox = firefox_options()
+    # "firefox" - Чтобы запустить с UI или "headless" - если не нужно отображать UI
+    options_firefox.add_argument('firefox')
+    options_firefox.add_argument('--start-maximized')
+    options_firefox.add_argument(window_size)
+    return options_firefox
 
 
-@pytest.fixture(scope='function')
-def setup(request, driver, remote_browser):
-    """ Фикстура сервера проекта """
-    driver = driver
-    url = 'https://test-ssr.gfc-russia.ru/'
-    if request.cls is not None:
-        request.cls.driver = driver
-        remote_browser.get(url)
-        yield driver
-        driver.quit()
+@pytest.fixture
+def get_edge_options():
+    """ Декоратор настройки параметров браузера Edge """
+    options_edge = edge_options()
+    # "edge" - Чтобы запустить с UI или "headless" - если не нужно отображать UI
+    options_edge.add_argument('edge')
+    options_edge.add_argument('--start-maximized')
+    options_edge.add_argument(window_size)
+    return options_edge
 
 
-@pytest.fixture(scope='session')
-def login():
-    """ Фикстура чтения логин в script.txt """
-    file = open('script.txt', 'r')
-    login = file.readlines()
-    file.close()
-    return login[0]
-
-
-@pytest.fixture(scope='session')
-def password():
-    """ Фикстура чтения пароля в script.txt """
-    file = open('script.txt', 'r')
-    password = file.readlines()
-    file.close()
-    return password[1]
-
-
-@pytest.fixture(scope='session')
-def local(request):
-    return request.config.getoption('--local')
-
-
-@pytest.fixture(scope='function')
-def remote_browser(test_browser, local) -> Remote:
-    """ Выбирает значение браузера и хоста  """
-    if local != 'true' and local != 'false':
-        raise ValueError(f'--local={local}". Не удалось настроить драйвер.\n'
-                         'указать "true" для локального запуска\n'
-                         'указать "false" для использования CI')
-    cmd_executor = {
-        'true': 'http://localhost:4444/wd/hub',
-        'false': f'http://selenium__standalone-{test_browser}:4444/wd/hub'
-    }
-    if test_browser == 'firefox':
-        driver = webdriver.Remote(
-            options=webdriver.FirefoxOptions(),
-            command_executor=cmd_executor[local])
-    elif test_browser == 'chrome':
-        driver = webdriver.Remote(
-            options=webdriver.ChromeOptions(),
-            command_executor=cmd_executor[local])
+@pytest.fixture()
+def driver(get_chrome_options, get_firefox_options, get_edge_options, test_browser):
+    """ Вызов веб-драйвера в зависимости от выбора """
+    if test_browser != 'chrome' and test_browser != 'firefox' and test_browser != 'edge' and test_browser != 'opera':
+        raise ValueError(f'--browser={test_browser}". Не выбран браузер или выбран некорректный.\n '
+                         'Доступный браузеры:\n'
+                         'Google Chrome - chrome\n'
+                         'FireFox - firefox\n'
+                         'Microsoft Edge - edge\n')
+    if test_browser == 'chrome':
+        chrome = Service('./webdrivers/chromedriver.exe')
+        options = get_chrome_options
+        driver = webdriver.Chrome(options=options, service=chrome)
+    elif test_browser == 'firefox':
+        firefox = Service('./webdrivers/geckodriver.exe')
+        options = get_firefox_options
+        driver = webdriver.Firefox(options=options, service=firefox)
     elif test_browser == 'edge':
-        driver = webdriver.Remote(
-            option=webdriver.EdgeOptions(),
-            command_executor=cmd_executor[local])
+        edge = Service('./webdrivers/msedgedriver.exe')
+        options = get_edge_options
+        driver = webdriver.Edge(options=options, service=edge)
     else:
-        raise ValueError(
-            f'--browser="{test_browser}" не то значение')
+        raise ValueError(f'--browser="{test_browser}" некорректное значение')
     yield driver
     driver.quit()
+
+
+@pytest.fixture()
+def session(driver):
+    """
+    Авторизация под тестовым пользователем
+    для последующих тестов
+    """
+    driver.get("https://test-ssr.gfc-russia.ru/")
+    driver.find_element(By.XPATH,
+                        "/html/body/div[2]/div/header/div[2]/div[3]/div/div/div/div/div/div[3]/div/div[2]").click()
+    driver.find_element(By.ID, "SIGN_IN_EMAIL").clear()
+    driver.find_element(By.ID, "SIGN_IN_EMAIL").send_keys('demetrius.belkin@gmail.com')
+    driver.find_element(By.ID, "SIGN_IN_PASSWORD").clear()
+    driver.find_element(By.ID, "SIGN_IN_PASSWORD").send_keys('Qwerty1')
+    driver.find_element(By.XPATH, '//button[normalize-space()="Войти"]').click()
+    driver.implicitly_wait(5)
+    yield
+
+
+@pytest.fixture()
+def no_auth(driver):
+    """
+    Для тестирования, под не авторизованным пользователем.
+    """
+    driver.get("https://test-ssr.gfc-russia.ru/")
+    yield

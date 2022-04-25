@@ -17,7 +17,7 @@ Prepare
 docker run -d -p 4444:4444 --net grid --name selenium-hub selenium/hub:3.141.59
 docker run -d --net grid -e HUB_HOST=selenium-hub --name chrome -v /dev/shm:/dev/shm selenium/node-chrome
 docker run -d --net grid -e HUB_HOST=selenium-hub --name firefox -v /dev/shm:/dev/shm selenium/node-firefox
-docker run -d --net grid -e HUB_HOST=selenium-hub --name firefox -v /dev/shm:/dev/shm selenium/node-edge
+docker run -d --net grid -e HUB_HOST=selenium-hub --name edge -v /dev/shm:/dev/shm selenium/node-edge
 ```
 
 Run tests
