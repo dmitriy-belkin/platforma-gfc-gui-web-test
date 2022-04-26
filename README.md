@@ -1,6 +1,9 @@
 # Platform GFC UI Test (WEB)
 
 
+[![pipeline status](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/badges/main/pipeline.svg)](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/commits/main)
+[![coverage report](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/badges/main/coverage.svg)](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/commits/main)
+[![Latest Release](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/badges/release.svg)](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/releases)
 
 #### Browsers support
 - Chrome (default)
