@@ -5,6 +5,7 @@
 [![coverage report](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/badges/main/coverage.svg)](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/commits/main)
 [![Latest Release](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/badges/release.svg)](https://gitlab.com/ruibeyd/platforma-gfc-gui-web-test/-/releases)
 
+
 #### Browsers support
 - Chrome (default)
 - Edge
@@ -15,14 +16,14 @@
 - To run job with Firefox set GitLab variable BROWSER=edge and run pipeline with one of the Triggers 
 
 ## Prepare (Allure)
-###Linux
+### Linux
 For debian-based repositories a PPA is provided:
 ```shell script
 sudo apt-add-repository ppa:qameta/allure
 sudo apt-get update 
 sudo apt-get install allure
 ```
-###Windows
+### Windows
 For Windows, Allure is available from the [Scoop](https://scoop.sh/) commandline-installer.
 
 To install Allure, download and install Scoop and then execute in the Powershell:
@@ -37,17 +38,17 @@ This will check for newer versions of Allure, and update the manifest file. Then
 ```shell script
 scoop update allure
 ```
-###Mac OS X
+### Mac OS X
 For Mas OS, automated installation is available via [Homebrew](https://brew.sh/)
 ```shell script
 brew install allure
 ```
 
-###Run with allure
+### Run with allure
 ```shell script
 pytest --allure=./reports/
 ```
-###Read allure
+### Read allure
 ```shell script
 allure serve ./reports/
 ```
