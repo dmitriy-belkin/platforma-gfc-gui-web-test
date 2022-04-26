@@ -71,12 +71,12 @@ def driver(get_chrome_options, get_firefox_options, get_edge_options, test_brows
                          'FireFox - firefox\n'
                          'Microsoft Edge - edge\n')
     if test_browser == 'chrome':
+        chrome = Service('./webdrivers/chromedriver.exe')
         options = get_chrome_options
-        driver = webdriver.Remote(options=options)
+        driver = webdriver.Chrome(options=options, service=chrome)
     elif test_browser == 'firefox':
-        firefox = Service('./webdrivers/geckodriver.exe')
         options = get_firefox_options
-        driver = webdriver.Firefox(options=options, service=firefox)
+        driver = webdriver.Remote(options=options)
     elif test_browser == 'edge':
         edge = Service('./webdrivers/msedgedriver.exe')
         options = get_edge_options
@@ -95,7 +95,7 @@ def session(driver):
     """
     driver.get(url)
     driver.find_element(By.XPATH,
-                        "/html/body/div[2]/div/header/div[2]/div[3]/div/div/div/div/div/div[3]/div/div[2]").click()
+                        '//div[normalize-space()="Войти"]').click()
     driver.find_element(By.ID, "SIGN_IN_EMAIL").clear()
     driver.find_element(By.ID, "SIGN_IN_EMAIL").send_keys('demetrius.belkin@gmail.com')
     driver.find_element(By.ID, "SIGN_IN_PASSWORD").clear()
