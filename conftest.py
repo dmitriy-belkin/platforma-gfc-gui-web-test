@@ -9,7 +9,7 @@ from selenium.webdriver.edge.service import Service
 from selenium.webdriver.common.by import By
 
 window_size = '--window-size=1920,1080'
-url = "https://test-ssr.gfc-russia.ru/"
+url = "https://n1.gfc-russia.ru/"
 
 
 def pytest_addoption(parser):
@@ -97,9 +97,9 @@ def session(driver):
     driver.find_element(By.XPATH,
                         '//div[normalize-space()="Войти"]').click()
     driver.find_element(By.ID, "SIGN_IN_EMAIL").clear()
-    driver.find_element(By.ID, "SIGN_IN_EMAIL").send_keys('demetrius.belkin@gmail.com')
+    driver.find_element(By.ID, "SIGN_IN_EMAIL").send_keys("demetrius.belkin@gmail.com")
     driver.find_element(By.ID, "SIGN_IN_PASSWORD").clear()
-    driver.find_element(By.ID, "SIGN_IN_PASSWORD").send_keys('Qwerty1')
+    driver.find_element(By.ID, "SIGN_IN_PASSWORD").send_keys("Qwerty1")
     driver.find_element(By.XPATH, '//button[normalize-space()="Войти"]').click()
     driver.implicitly_wait(5)
     yield
