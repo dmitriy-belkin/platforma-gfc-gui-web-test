@@ -5,7 +5,8 @@
 # Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
 # Note that environment variables can be set in several places
 # See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
-image: python:3.10.4
+
+#image: python:alpine:3.16
 stages:
 - test
 
@@ -14,9 +15,9 @@ variables:
 
 .job_template:
   before_script:
-    - pip install -r requirements.txt
+    #- pip install -r requirements.txt
   script:
-    - pytest --browser=$BROWSER'
+    #- pytest --browser=$BROWSER --local='false'
 
 e2e:remote:chrome:
   extends: .job_template
